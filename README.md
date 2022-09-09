@@ -36,13 +36,13 @@ After installing "MyProx" as shown above, just execute the tool to get it runnin
 myprox
 ```
 
-Configuration can be done in the file `/etc/myprox/myprox.conf`. A commented example file can be downloaded at <a href="https://github.com/towalink/myprox/src/templates/myprox.conf" target="_blank">https://github.com/towalink/myprox/src/templates/myprox.conf</a>.
+Configuration can be done in the file `/etc/myprox/myprox.conf`. A commented example file can be downloaded at <a href="https://github.com/towalink/myprox/blob/main/src/myprox/templates/myprox.conf" target="_blank">https://github.com/towalink/myprox/blob/main/src/myprox/templates/myprox.conf</a>.
 
 ---
 
 ## Screenshots
 
-![screenshot: show list of VMs](https://raw.githubusercontent.com/towalink/myprox/main/screenshots/list-machines.png "Show list of VMs")
+<img src="https://raw.githubusercontent.com/towalink/myprox/main/screenshots/list-machines.png" width="450" alt="screenshot: show list of VMs">
 
 See additional screenshots in the "screenshots" folder.
 
