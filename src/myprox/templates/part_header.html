@@ -1,0 +1,9 @@
+  <header>
+    <h2><a href="/"><img src="static/logo.svg" alt="MyProx logo"><span>MyProx</span></a></h2>
+    <div class="user">
+      <p>{% if sessiondata['username'] %}{{ sessiondata['username'] }}{% else %}not logged in{%endif %}</p>
+      <form action="/logout">
+        <input class="button" type="submit" value="Logout" />
+      </form>
+    </div>
+  </header>

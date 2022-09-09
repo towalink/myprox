@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+      <h3>{% if peerdata['Id'] %}Edit{% else %}New{% endif %} Client</h3>
+      <div class='form'>
+        <form method="get" action="..">
+          <div class="buttonrow">
+            <button class="button buttonhighlight" type="submit" name="action" value="list">Return to List</button>
+          </div>
+          <div class="table">
+            <div class="table-row">
+              <div class="table-cell bordertop">
+                <input type="hidden" name="id" value="{{ peerdata['Id'] }}" />
+                <input class="inputtext" type="text" name="description" value="{{ peerdata['Description'] }}" size="40" /><br>
+                <small>{{ peerdata['Address'] }}</small>
+              </div>
+              <div class="table-cell twobuttoncell bordertop2">
+                <button class="button" type="submit" name="action" value="save" formaction="config">{% if peerdata['Id'] %}Save Changes{% else %}Save{%endif %}</button>
+                {%- if peerdata['Id'] %}
+                <button class="button" type="submit" name="action" value="delete" onclick="return confirm('Do you really want to delete this client?')">Delete Client</button>                
+                {%- else %}
+                <button class="button" type="submit" name="action" value="list")">Cancel</button>
+                {%- endif %}
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+{% endblock %}

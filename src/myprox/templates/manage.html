@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+      <h3>Machine Management for "{{ itemdata['name'] }}"</h3>
+      <div class='form'>
+        <form method="get" action="manage">
+          <div class="buttonrow">
+            <button class="button buttonhighlight" type="submit" name="action" value="list" formaction="..">Return to List</button>
+          </div>
+          {% if message -%}
+          <div class="bordertop">
+            <strong>{{ message }}</strong>
+          </div>
+          {% endif -%}
+          <div class="textsections bordertop">
+            <p>
+              <i>Machine:&nbsp;</i> {{ itemdata['name'] }}<br>
+              <i>Identifier:&nbsp;</i> {{ itemdata['vmid'] }}@{{ itemdata['node'] }}           
+            </p>
+            <p>
+              <i>State:&nbsp;</i> {{ itemdata['status_uptime'] }}<br>
+            </p>
+            <p>
+              <i>CPUs:&nbsp;</i> {{ itemdata['cpus'] }}<br>
+              <i>Memory:&nbsp;</i> {{ itemdata['memrange'] }}<br>
+              <i>Disk:&nbsp;</i> {{ itemdata['maxdisk_human'] }}
+            </p>
+            {% if itemdata['tag_expiry'] -%}
+            <p>
+              <i>Expiry:&nbsp;</i> {{ itemdata['tag_expiry'] }}<br>
+            </p>
+            {% endif -%}
+          </div>
+          <div class="buttonrow">
+            <label for="actions">Choose an action:</label>
+            <select name="action_selection" id="actions">
+              <option value="refresh">Refresh page</option>
+              <optgroup label="State changes">
+                <option value="start">Start machine</option>
+                <option value="shutdown">Shutdown machine</option>                
+                <option value="reboot">Reboot machine</option>
+                <option value="reset">Reset machine</option>                
+                <option value="stop">Stop machine</option>
+                <option value="suspend">Suspend machine</option>
+                <option value="resume">Resume machine</option>
+              </optgroup>
+              <optgroup label="Other actions">
+                <option value="console">Open console</option>              
+                {% if itemdata['tag_expiry'] -%}
+                <option value="extend">Extend validity</option>
+                {% endif -%}
+                <option value="destroy">Destroy machine</option>
+              </optgroup>
+            </select>
+            <button class="button" type="submit" name="id" value="{{ itemdata['vmid'] }}@{{ itemdata['node'] }}" onclick="
+              if (action_selection.value == 'destroy') {
+                return prompt('Do you really want to destroy this machine?\n\nALL DATA WILL BE ERASED!\n\nType DESTROY to destroy machine:', '') == 'DESTROY';
+              } else if (action_selection.value == 'reset') {                
+                return confirm('Do you really want to hard reset this machine? Some data may get lost.')
+              } else if (action_selection.value == 'stop') {                
+                return confirm('Do you really want to switch off this machine? Some data may get lost.')
+              } else {
+                return true;
+              }
+            ">Execute</button>          
+          </div>
+        </form>
+      </div>
+{% endblock %}

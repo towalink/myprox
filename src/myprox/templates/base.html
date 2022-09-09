@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyProx</title>
+  <link rel="stylesheet" media="screen" href="/static/styles.css" />
+</head>
+<body>
+{% include 'part_header.html' %}
+  <section>
+    <div class="content">
+      {%- block content %}{% endblock %}
+    </div>
+  </section>
+  <footer>
+    <a href="https://github.com/odi79/myprox/" target="_blank">Powered by the open source &quot;MyProx&quot;</a>
+  </footer>
+</body>
+</html>

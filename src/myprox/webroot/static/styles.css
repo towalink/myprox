@@ -1,0 +1,220 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font: normal 16px sans-serif;
+  background-color: #f3f3f3;
+  color: #000;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+a:hover {
+  text-decoration: underline;
+  opacity: 1;
+}
+
+.button {
+  background-color: red;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 4px 2px;
+  width: 110px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 2px 0px;
+}
+
+.button:hover {
+  background-color: #002db3;
+  color: white;
+}
+
+.buttonhighlight {
+  background-color: #ff7700;
+}
+
+.inputtext {
+  background-color: white;
+  border: 1px solid gray;
+  color: black;
+  padding: 4px 5px;
+  width: 95%;
+  text-align: left;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+}
+
+.loginform {
+  margin: auto;
+  margin-top: 100px;
+  width: 400px;
+  border: 2px solid lightred;
+  padding: 10px 10px;
+  font-size: 16px;
+  align-items: center;
+}
+
+.loginerror {
+  width: 100%;
+  text-align: center;
+  color: red;
+  margin: 5px 10px 10px 10px;
+  font-size: 16px;
+}
+
+.logininput {
+  border: 1px solid gray;
+  color: black;
+  padding: 3px 5px;
+  margin: 1px 0;
+  text-align: left;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.loginmargin {
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  padding: 10px 250px;
+  background-color: #dddddd;
+}
+
+header h2 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 32px;
+  color: red;
+}
+
+header h2 img {
+  height: 35px;
+  float: left;
+  margin-right: 10px;
+}
+
+.user {
+  color: #000;
+  font-size: 14px;
+  text-align: right;
+}
+
+section {
+  width: 100%;
+  display: flex;
+  padding: 10px 250px;
+  background-color: #f3f3f3;
+}
+
+.content {
+  width: 100%;
+}
+
+.buttonrow {
+  text-align: right;
+  padding: 0px 0px 5px 0px;
+}
+
+.table {
+  display: table;
+  width: 100%;
+}
+
+.table-row {
+  display: table-row;
+  width: 100%;
+}
+
+.table-cell {
+  display: table-cell;
+  padding: 5px 0px;
+}
+
+.bordertop{
+  border-top: 1px solid gray;
+}
+
+.bordertop2{
+  border-top: 1px solid gray;
+}
+
+.twobuttoncell {
+  width: 225px;
+  text-align: right;
+}
+
+.textsections p {
+  margin-top: 1em;
+}
+
+.instructions {
+  font-size: 14px;
+}
+
+
+@media screen and (max-width: 1000px) {
+  .table, .table-row {
+    display: block;
+  }
+  .table-cell {
+    display: block;
+  }
+  .bordertop2{
+    border-top: 0;
+  }
+}
+
+
+footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #dddddd;
+  color: red;
+  font-size: 12px;
+  text-align: center;
+  padding: 3px 5px;
+}
+
+@media screen and (max-width: 1200px) {
+  header {
+    padding: 10px 100px;
+  }
+  section {
+    padding: 10px 100px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  header {
+    flex-direction: column;        
+    padding: 10px 10px;
+  }
+  header h2 {
+    margin-bottom: 15px;
+  }
+  section {
+    flex-direction: column;        
+    padding: 10px 10px;
+  }
+}

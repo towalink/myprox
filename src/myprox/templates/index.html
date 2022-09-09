@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+      <h3>Configured Machines</h3>
+      <div class='form'>
+        <form method="get">
+          <div class="buttonrow">
+            <button class="button buttonhighlight" type="submit" name="action" value="create" formaction="create">Add Machine</button>
+          </div>
+          <div class="table">
+          {%- for item, itemdata in machines.items()|sort(attribute='1.vmid') %}
+            <div class="line"></div>
+            <div class="table-row">
+              <div class="table-cell bordertop">
+                {{ itemdata['vmid'] }}: {{ itemdata['name'] }}<br>
+                <small>State: {{ itemdata['status_uptime'] }}</small><br>
+                <small>Memory: {{ itemdata['maxmem_human'] }}</small>
+              </div>
+              <div class="table-cell twobuttoncell bordertop2">
+                {% if itemdata['status'] == 'running' %}
+                <button class="button" type="submit" name="id" value="{{ itemdata['vmid'] }}@{{ itemdata['node'] }}" formaction="console">Open GUI</button>
+                {% endif %}
+                <button class="button" type="submit" name="id" value="{{ itemdata['vmid'] }}@{{ itemdata['node'] }}" formaction="manage">Manage...</button>
+              </div>
+            </div>
+          {%- endfor %}
+          {% if not machines %}
+          <div class="table">
+            <div class="line"></div>
+            <div class="table-row">
+              <div class="table-cell bordertop">
+                There is no machine configured so far.         
+              </div>
+            </div>
+          {% endif %}
+          </div>
+        </form>
+      </div>
+{% endblock %}
