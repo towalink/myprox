@@ -96,6 +96,16 @@ class Configuration():
         return self.config.get('proxmox_default_auth_domain', 'pve')
 
     @property
+    def webserver_user(self):
+        """In case MyProx is started as root, drop privileges to the given user for increased security"""
+        return self.config.get('webserver_user', 'myprox')
+
+    @property
+    def webserver_group(self):
+        """In case MyProx is started as root, drop privileges to the given group for increased security"""
+        return self.config.get('webserver_group', 'myprox')
+
+    @property
     def shortcut_user(self):
         """The user to be used in case '.' is provided as username"""
         return self.config.get('shortcut_user', '')

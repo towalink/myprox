@@ -11,6 +11,7 @@ import string
 
 import proxmoxer
 from . import myproxapi
+from . import setupenv
 
 
 class WebApp():
@@ -66,7 +67,7 @@ class WebApp():
             machine_data = cherrypy.session['proxmox'].get_virtual_machine_with_tags(id)
         if machine_data is None:
             machine_data = dict()
-        cherrypy.log(str(machine_data), context='WEBAPP', severity=logging.WARNING, traceback=False)
+        #cherrypy.log(str(machine_data), context='WEBAPP', severity=logging.WARNING, traceback=False)
         tmpl = self.jinja_env.get_template('manage.html')
         return tmpl.render(sessiondata=cherrypy.session, itemdata=machine_data, message=message)
 
@@ -172,6 +173,8 @@ def run_webapp(cfg):
         cherrypy.server.ssl_module = 'builtin'
         cherrypy.server.ssl_certificate = cfg.sslcertfile
         cherrypy.server.ssl_private_key = cfg.sslkeyfile
+    else:
+        cherrypy.log(f'Not using SSL/TLS due to certificate files [{cfg.sslcertfile}] and [{cfg.sslkeyfile}] not being present', context='SETUP', severity=logging.WARNING, traceback=False)
     # Define socket parameters
     cherrypy.config.update({'server.socket_host': cfg.socket_host,
                             'server.socket_port': cfg.socket_port,
@@ -184,11 +187,15 @@ def run_webapp(cfg):
                            })
     # Start CherryPy
     cherrypy.tree.mount(app, config=app_conf)
-    # Commented to let systemd et al. handle this
-    #     if setupenv.is_root():
-    #         # Drop privileges
-    #         uid, gid = setupenv.get_uid_gid(cfg.user, cfg.user)
-    #         cherrypy.process.plugins.DropPrivileges(cherrypy.engine, umask=0o022, uid=uid, gid=gid).subscribe()
+    if setupenv.is_root():
+        # Drop privileges
+        cherrypy.log(f'MyProx was started as root; attempting to drop privileges to user "{cfg.webserver_user}" and group "{cfg.webserver_group}"', context='SETUP', severity=logging.INFO, traceback=False)
+        try:
+            uid, gid = setupenv.get_uid_gid(cfg.webserver_user, cfg.webserver_group)
+        except KeyError:
+            cherrypy.log(f'Error dropping privileges to user "{cfg.webserver_user}" and group "{cfg.webserver_group}"; do they exist on your machine? Aborting.', context='SETUP', severity=logging.ERROR, traceback=False)
+            exit(1)
+        cherrypy.process.plugins.DropPrivileges(cherrypy.engine, umask=0o022, uid=uid, gid=gid).subscribe()
     cherrypy.engine.start()
     cherrypy.engine.signals.subscribe()
     cherrypy.engine.block()
