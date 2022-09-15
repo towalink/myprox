@@ -72,8 +72,8 @@ class Configuration():
 
     @property
     def socket_host(self):
-        """The interface to bind to"""
-        return self.config.get('socket_host', '0.0.0.0')
+        """The address to bind to"""
+        return self.config.get('socket_host', '::')
 
     @property
     def socket_port(self):

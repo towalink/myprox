@@ -8,6 +8,7 @@ import logging
 import os
 import random
 import string
+from urllib.parse import urlencode
 
 import proxmoxer
 from . import myproxapi
@@ -92,6 +93,10 @@ class WebApp():
             return file_data.encode('utf-8')
         except Exception as e:
             return str(e)
+
+    @cherrypy.expose
+    def start(self, id=None):
+        raise cherrypy.HTTPRedirect('./manage?action_selection=start&' + urlencode([('id', id)]))
 
     def check_username_and_password(self, username, password):
         """Check whether provided username and password are valid when authenticating"""

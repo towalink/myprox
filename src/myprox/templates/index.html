@@ -18,6 +18,8 @@
               <div class="table-cell twobuttoncell bordertop2">
                 {% if itemdata['status'] == 'running' %}
                 <button class="button" type="submit" name="id" value="{{ itemdata['vmid'] }}@{{ itemdata['node'] }}" formaction="console">Open GUI</button>
+                {% else %}
+                <button class="button" type="submit" name="id" value="{{ itemdata['vmid'] }}@{{ itemdata['node'] }}" formaction="start">Start</button>
                 {% endif %}
                 <button class="button" type="submit" name="id" value="{{ itemdata['vmid'] }}@{{ itemdata['node'] }}" formaction="manage">Manage...</button>
               </div>
