@@ -79,7 +79,7 @@ class ProxAPI():
         """Return the data of the available virtual machines (or filter to return data of VMs on single node or just the data of a single VM)"""
         result = dict()
         for current_node in ([{'node': node}] if node is not None else self.proxmox.nodes.get()):
-            if current_node['status'] != 'online': # one can't query non-online nodes
+            if current_node.get('status', 'online') != 'online': # one can't query non-online nodes
                 continue
             # Works similarly for LXC:
             # for vm in self.proxmox.nodes(current_node["node"]).lxc.get():
