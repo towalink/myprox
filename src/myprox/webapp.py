@@ -34,7 +34,7 @@ class WebApp():
     def manage(self, action=None, id=None, action_selection=None):
         """Manage a machine"""
         machine_data = None
-        message = None        
+        message = None
         if id:
             action_results = {
               'start': 'start triggered',
@@ -155,7 +155,7 @@ def run_webapp(cfg):
        },
        '/': {
             'tools.sessions.on': True,
-            'tools.sessions.secure': True,
+            'tools.sessions.secure': (cherrypy.server.ssl_certificate is not None),
             'tools.sessions.httponly': True,
             'tools.staticdir.root': os.path.join(script_path, 'webroot'),
             'tools.session_auth.on': True,

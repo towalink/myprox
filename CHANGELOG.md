@@ -12,6 +12,13 @@ All notable changes to this project are documented in this file.
 ### Fixed
 
 
+## [0.4.1] - 2022-10-29
+
+### Fixed
+
+- Only set session cookie secure flag if https is used
+
+
 ## [0.4.0] - 2022-10-29
 
 ### Added
