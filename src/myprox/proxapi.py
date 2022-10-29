@@ -93,7 +93,7 @@ class ProxAPI():
                 if (item['mem_human'] == item['maxmem_human']) or (vm['mem'] == 0):
                     item['memrange'] = item['maxmem_human']
                 else:
-                    item['memrange'] = item['mem_human'] + ' to ' + item['maxmem_human']
+                    item['memrange'] = item['mem_human'] + ' of ' + item['maxmem_human']
                 item['maxdisk_human'] = self.int2human(vm['maxdisk'])
                 item['uptime_human'] = self.uptime2human(vm['uptime'])
                 if item['status'] == 'running':

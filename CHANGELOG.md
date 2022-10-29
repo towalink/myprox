@@ -12,6 +12,17 @@ All notable changes to this project are documented in this file.
 ### Fixed
 
 
+## [0.4.2] - 2022-10-29
+
+### Changed
+
+- Better memrange wording
+
+### Fixed
+
+- Check node online status only on cluster queries
+
+
 ## [0.4.1] - 2022-10-29
 
 ### Fixed
