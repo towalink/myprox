@@ -7,15 +7,27 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
-- n/a
-
 ### Changed
-
-- n/a
 
 ### Fixed
 
-- n/a
+
+## [0.4.0] - 2022-10-29
+
+### Added
+
+- Enhance API with option to provide "full" qemu data
+- Also support "false" and "true" for Boolean values in config file
+
+### Changed
+
+- Only query nodes that are online
+- Add session security headers
+- Use "memrange" attribute in VM list
+
+### Fixed
+
+- Remove redundant line in index template
 
 
 ## [0.3.0] - 2022-09-15

@@ -155,6 +155,8 @@ def run_webapp(cfg):
        },
        '/': {
             'tools.sessions.on': True,
+            'tools.sessions.secure': True,
+            'tools.sessions.httponly': True,
             'tools.staticdir.root': os.path.join(script_path, 'webroot'),
             'tools.session_auth.on': True,
             'tools.session_auth.login_screen': app.login_screen,

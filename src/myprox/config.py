@@ -48,6 +48,11 @@ class Configuration():
 #        except OSError as e:
 #            logger.error('Could not write config file [{0}], [{1}]'.format(self.filename, str(e)))
 
+    def is_true(self, value):
+        """Checks whether the given value evaluates to True"""
+        value = str(value).lower()
+        return value not in ['0', 'false']
+
     @property
     def filename(self):
         """Return the name of the config file (incl. path)"""
@@ -88,7 +93,7 @@ class Configuration():
     @property
     def proxmox_api_verifyssl(self):
         """Whether to check the ssl certificate of the Proxmox API"""
-        return (int(self.config.get('proxmox_api_verifyssl', 0)) != 0)
+        return self.is_true(self.config.get('proxmox_api_verifyssl', 0))
 
     @property
     def proxmox_default_auth_domain(self):
@@ -128,4 +133,4 @@ class Configuration():
     @property
     def dryrun(self):
         """Define whether to disable sending any writing/changing requests to Proxmox API"""
-        return (int(self.config.get('dryrun', 0)) != 0)
+        return self.is_true(self.config.get('dryrun', 0))

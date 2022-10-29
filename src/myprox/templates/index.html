@@ -13,7 +13,7 @@
               <div class="table-cell bordertop">
                 {{ itemdata['vmid'] }}: {{ itemdata['name'] }}<br>
                 <small>State: {{ itemdata['status_uptime'] }}</small><br>
-                <small>Memory: {{ itemdata['maxmem_human'] }}</small>
+                <small>Memory: {{ itemdata['memrange'] }}</small>
               </div>
               <div class="table-cell twobuttoncell bordertop2">
                 {% if itemdata['status'] == 'running' %}
@@ -26,7 +26,6 @@
             </div>
           {%- endfor %}
           {% if not machines %}
-          <div class="table">
             <div class="line"></div>
             <div class="table-row">
               <div class="table-cell bordertop">

@@ -75,16 +75,18 @@ class ProxAPI():
     def get_nodes(self):
         return self.proxmox.nodes.get()
 
-    def get_virtual_machines(self, node=None, vmid=None):
+    def get_virtual_machines(self, node=None, vmid=None, full=False):
         """Return the data of the available virtual machines (or filter to return data of VMs on single node or just the data of a single VM)"""
         result = dict()
         for current_node in ([{'node': node}] if node is not None else self.proxmox.nodes.get()):
+            if current_node['status'] != 'online': # one can't query non-online nodes
+                continue
             # Works similarly for LXC:
             # for vm in self.proxmox.nodes(current_node["node"]).lxc.get():
             #     print("{0}: {1} => {2}".format(vm["vmid"], vm["name"], vm["status"]))
             #     print('Uptime:', uptime2human(vm['uptime']))
-            for vm in self.proxmox.nodes(current_node["node"]).qemu.get():
-                item = { key: value for key, value in vm.items() }
+            for vm in self.proxmox.nodes(current_node['node']).qemu.get(full=(1 if full else 0)):
+                item = vm.copy() #item = { key: value for key, value in vm.items() }
                 item['node'] = current_node['node']
                 item['mem_human'] = self.int2human(vm['mem'])
                 item['maxmem_human'] = self.int2human(vm['maxmem'])
@@ -105,10 +107,10 @@ class ProxAPI():
             return result[int(vmid)]
         return result            
 
-    def get_virtual_machine(self, id):
+    def get_virtual_machine(self, id, full=False):
         """Return the data of the given virtual machine (id format: 'vmid@node')"""
         vmid, node = self.decompose_id(id)
-        result = self.get_virtual_machines(node=node, vmid=vmid)
+        result = self.get_virtual_machines(node=node, vmid=vmid, full=full)
         return result
 
     def get_spice(self, id):

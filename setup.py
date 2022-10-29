@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup_kwargs = {
     'name': 'MyProx',
-    'version': '0.3.0',
+    'version': '0.4.0',
     'author': 'Dirk Henrici',
     'author_email': 'pypi.myprox@henrici.name',
     'description': 'simple web frontend for Proxmox VE users',
