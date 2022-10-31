@@ -91,6 +91,15 @@ class Configuration():
         return self.config.get('proxmox_api', 'localhost')
 
     @property
+    def proxmox_api_withport(self):
+        """The hostname/IP address of the Proxmox API including port number"""
+        result = self.proxmox_api
+        # Note: The following won't work with IPv6 addresses; we currently don't care since hostnames are usually used anyway
+        if ':' not in result:
+            result += ':8006'
+        return result
+
+    @property
     def proxmox_api_verifyssl(self):
         """Whether to check the ssl certificate of the Proxmox API"""
         return self.is_true(self.config.get('proxmox_api_verifyssl', 0))
@@ -99,6 +108,20 @@ class Configuration():
     def proxmox_default_auth_domain(self):
         """Whether to check the ssl certificate of the Proxmox API"""
         return self.config.get('proxmox_default_auth_domain', 'pve')
+        
+    @property
+    def cookie_auth_domain(self):
+        """The joint domain of MyProx and Proxmox to be set in an authentication cookie (used for authentication Proxmox' VNC client)"""
+        domain = self.config.get('cookie_auth_domain', 'auto')
+        if domain == 'auto':
+            domain = self.proxmox_api # e.g. "myprox.prox.mydomain.com" or "192.168.1.0"
+            parts = domain.rsplit('.', 2) # e.g. ['myprox.prox', 'mydomain', 'com'] or ['192.168', '1', '0']
+            if not parts[-1].isnumeric(): # no IP address?
+                domain = '.'.join(parts[-2:]) # e.g. "mydomain.com"
+            # Don't set domain in case the default "localhost" is set
+            if domain == 'localhost':
+                domain = None
+        return domain
 
     @property
     def webserver_user(self):

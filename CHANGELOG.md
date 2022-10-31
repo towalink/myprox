@@ -12,6 +12,13 @@ All notable changes to this project are documented in this file.
 ### Fixed
 
 
+## [0.5.0] - 2022-11-01
+
+### Added
+
+- Support opening Proxmox' VNC console
+
+
 ## [0.4.2] - 2022-10-29
 
 ### Changed

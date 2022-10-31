@@ -36,15 +36,16 @@
               <option value="refresh">Refresh page</option>
               <optgroup label="State changes">
                 <option value="start">Start machine</option>
-                <option value="shutdown">Shutdown machine</option>                
+                <option value="shutdown">Shutdown machine</option>
                 <option value="reboot">Reboot machine</option>
-                <option value="reset">Reset machine</option>                
+                <option value="reset">Reset machine</option>               
                 <option value="stop">Stop machine</option>
                 <option value="suspend">Suspend machine</option>
                 <option value="resume">Resume machine</option>
               </optgroup>
               <optgroup label="Other actions">
-                <option value="console">Open console</option>              
+                <option value="console">Open console</option>
+                <option value="console_vnc">Open VNC console</option>
                 {% if itemdata['tag_expiry'] -%}
                 <option value="extend">Extend validity</option>
                 {% endif -%}

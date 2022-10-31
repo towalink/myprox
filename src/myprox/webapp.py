@@ -51,6 +51,8 @@ class WebApp():
                 message = f'Machine {action_results[action_selection]}.'
             elif action_selection == 'console':
                 raise cherrypy.HTTPRedirect(f'/console?id={id}')
+            elif action_selection == 'console_vnc':
+                raise cherrypy.HTTPRedirect(f'/console_vnc?id={id}')
             elif action_selection == 'extend':
                 cherrypy.session['proxmox'].set_tag_expiry_bydays(id, self.cfg.expiry_prolongation_days)
                 message = 'The expiry data of this machine has been set according to the prolongation policy of your organization.'
@@ -74,6 +76,7 @@ class WebApp():
 
     @cherrypy.expose
     def create(self, action=None, id=None):
+        """Trigger creation of a VM"""
         raise cherrypy.HTTPRedirect(self.cfg.machine_creation_url.format(username=cherrypy.session['username']))
 
     @cherrypy.expose
@@ -95,7 +98,29 @@ class WebApp():
             return str(e)
 
     @cherrypy.expose
+    def console_vnc(self, id=None):
+        """Open a VNC console for the provided VM using Proxmox' web console"""
+        token = cherrypy.session['proxmox'].proxmox.get_tokens()[0]
+        cherrypy.response.cookie['PVEAuthCookie'] = token        
+        cherrypy.response.cookie['PVEAuthCookie']._coded_value = token # automatic encoding adds quotes; since these break Proxmox authentication, override automatic quoting
+        cherrypy.response.cookie['PVEAuthCookie']['path'] = '/'
+        domain = self.cfg.cookie_auth_domain
+        if domain is not None:
+            cherrypy.response.cookie['PVEAuthCookie']['domain'] = domain
+        cherrypy.response.cookie['PVEAuthCookie']['max-age'] = 60
+        cherrypy.response.cookie['PVEAuthCookie']['samesite'] = 'Strict' # other values would be 'Lax' and 'None'
+        if cherrypy.server.ssl_certificate is not None: # are we running on ssl/tls?
+            cherrypy.response.cookie['PVEAuthCookie']['secure'] = 'true'
+        cherrypy.response.cookie['PVEAuthCookie']['httponly'] = 'true'
+        cherrypy.log(f'Auth cookie set: {cherrypy.response.cookie["PVEAuthCookie"].output()}', context='WEBAPP', severity=logging.DEBUG)
+        # Proxmox does e.g. https://192.168.202.16:8006/?console=kvm&novnc=1&vmid=112&vmname=dh-testvm&node=dh-nas6&resize=off&cmd='
+        prox = self.cfg.proxmox_api_withport
+        vmid, node = cherrypy.session['proxmox'].decompose_id(id)
+        raise cherrypy.HTTPRedirect(f'https://{prox}/?console=kvm&novnc=1&vmid={vmid}&node={node}&resize=off&cmd=')
+
+    @cherrypy.expose
     def start(self, id=None):
+        """Trigger start of the provided VM"""
         raise cherrypy.HTTPRedirect('./manage?action_selection=start&' + urlencode([('id', id)]))
 
     def check_username_and_password(self, username, password):
