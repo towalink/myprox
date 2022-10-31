@@ -54,6 +54,8 @@ class ProxAPI():
     
     def decompose_id(self, id):
         """Returns the vmid and node part of the provided id (format: 'vmid@node')"""
+        if id is None:
+            raise ValueError('No vmid provided')
         vmid, _, node = id.partition('@')
         if (node is not None) and (not len(node)):
             node = None    
