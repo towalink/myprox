@@ -9,6 +9,8 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Reduce SPICE connection file log level
+
 ### Fixed
 
 

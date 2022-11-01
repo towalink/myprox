@@ -88,7 +88,7 @@ class WebApp():
             file_data = '[virt-viewer]\n'
             for key, value in file_dict.items():
                 file_data += f'{key}={value}\n'
-            cherrypy.log(str(file_data), context='WEBAPP', severity=logging.INFO, traceback=False)
+            cherrypy.log(str(file_data), context='WEBAPP', severity=logging.DEBUG, traceback=False)
             filename = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(6)])
             #cherrypy.response.headers['Content-Disposition'] = f'attachment; filename={filename}.vv'
             cherrypy.response.headers['Content-Disposition'] = f'inline; filename={filename}.vv'
