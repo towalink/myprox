@@ -10,6 +10,12 @@ html {
   color: #000;
 }
 
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -120,7 +126,7 @@ header h2 img {
 
 section {
   width: 100%;
-  display: flex;
+  flex: 1;
   padding: 10px 250px;
   background-color: #f3f3f3;
 }
@@ -170,7 +176,6 @@ section {
   font-size: 14px;
 }
 
-
 @media screen and (max-width: 1000px) {
   .table, .table-row {
     display: block;
@@ -183,11 +188,7 @@ section {
   }
 }
 
-
 footer {
-  position: fixed;
-  left: 0;
-  bottom: 0;
   width: 100%;
   background-color: #dddddd;
   color: red;
