@@ -173,6 +173,25 @@ def run_webapp(cfg):
     """Runs the CherryPy web application with the provided configuration data"""
     script_path = os.path.dirname(os.path.abspath(__file__))
     app = WebApp(cfg)
+    # Use SSL if certificate files exist
+    ssl = os.path.exists(cfg.sslcertfile) and os.path.exists(cfg.sslkeyfile)
+    if ssl:
+        # Use ssl/tls if certificate files are present
+        cherrypy.server.ssl_module = 'builtin'
+        cherrypy.server.ssl_certificate = cfg.sslcertfile
+        cherrypy.server.ssl_private_key = cfg.sslkeyfile
+    else:
+        cherrypy.log(f'Not using SSL/TLS due to certificate files [{cfg.sslcertfile}] and [{cfg.sslkeyfile}] not being present', context='SETUP', severity=logging.WARNING, traceback=False)
+    # Define socket parameters
+    cherrypy.config.update({'server.socket_host': cfg.socket_host,
+                            'server.socket_port': cfg.socket_port,
+                           })
+    # Select environment
+    cherrypy.config.update({'staging':
+                             {
+                               'environment' : 'production'
+                             }
+                           })
     # Configure the web application
     app_conf = {
       'global': {
@@ -180,7 +199,7 @@ def run_webapp(cfg):
        },
        '/': {
             'tools.sessions.on': True,
-            'tools.sessions.secure': (cherrypy.server.ssl_certificate is not None),
+            'tools.sessions.secure': ssl,
             'tools.sessions.httponly': True,
             'tools.staticdir.root': os.path.join(script_path, 'webroot'),
             'tools.session_auth.on': True,
@@ -199,24 +218,6 @@ def run_webapp(cfg):
             'tools.staticfile.filename': os.path.join(script_path, 'webroot', 'static', 'favicon.ico')
         }
     }
-    # Use SSL if certificate files exist
-    if os.path.exists(cfg.sslcertfile) and os.path.exists(cfg.sslkeyfile):
-        # Use ssl/tls if certificate files are present
-        cherrypy.server.ssl_module = 'builtin'
-        cherrypy.server.ssl_certificate = cfg.sslcertfile
-        cherrypy.server.ssl_private_key = cfg.sslkeyfile
-    else:
-        cherrypy.log(f'Not using SSL/TLS due to certificate files [{cfg.sslcertfile}] and [{cfg.sslkeyfile}] not being present', context='SETUP', severity=logging.WARNING, traceback=False)
-    # Define socket parameters
-    cherrypy.config.update({'server.socket_host': cfg.socket_host,
-                            'server.socket_port': cfg.socket_port,
-                           })
-    # Select environment
-    cherrypy.config.update({'staging':
-                             {
-                               'environment' : 'production'
-                             }
-                           })
     # Start CherryPy
     cherrypy.tree.mount(app, config=app_conf)
     if setupenv.is_root():
