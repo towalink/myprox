@@ -7,14 +7,14 @@ with open('README.md', 'r') as f:
 
 setup_kwargs = {
     'name': 'MyProx',
-    'version': '0.5.0',
+    'version': '0.6.0',
     'author': 'Dirk Henrici',
     'author_email': 'pypi.myprox@henrici.name',
     'description': 'simple web frontend for Proxmox VE users',
     'long_description': long_description,
     'long_description_content_type': 'text/markdown',
     'url': 'https://www.github.com/towalink/myprox',
-    'packages': setuptools.find_packages('src'),
+    'packages': setuptools.find_namespace_packages('src'),
     'package_dir': {'': 'src'},
     'include_package_data': True,
     'install_requires': ['cherrypy',

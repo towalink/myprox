@@ -9,9 +9,17 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
-- Reduce SPICE connection file log level
-
 ### Fixed
+
+
+## [0.6.0] - 2024-05-05
+
+### Changed
+
+- Make SSL/TLS-dependent configuration explicit in code
+- No longer show footer in case scrollbar is needed
+- Avoid setuptools warning on packetization
+- Reduce SPICE connection file log level
 
 
 ## [0.5.0] - 2022-11-01
