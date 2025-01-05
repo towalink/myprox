@@ -186,17 +186,12 @@ def run_webapp(cfg):
     cherrypy.config.update({'server.socket_host': cfg.socket_host,
                             'server.socket_port': cfg.socket_port,
                            })
+    # Disable autoreload (cannot listen at a port <1024 after dropping root privileges)
+    cherrypy.config.update({'engine.autoreload.on': False})
     # Select environment
-    cherrypy.config.update({'staging':
-                             {
-                               'environment' : 'production'
-                             }
-                           })
+    cherrypy.config.update({'environment': 'production'})
     # Configure the web application
     app_conf = {
-      'global': {
-         'environment' : 'production'
-       },
        '/': {
             'tools.sessions.on': True,
             'tools.sessions.secure': ssl,

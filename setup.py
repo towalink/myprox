@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup_kwargs = {
     'name': 'MyProx',
-    'version': '0.6.0',
+    'version': '0.6.2',
     'author': 'Dirk Henrici',
     'author_email': 'pypi.myprox@henrici.name',
     'description': 'simple web frontend for Proxmox VE users',
@@ -42,7 +42,7 @@ setup_kwargs = {
     'python_requires': '>=3.6',
     'keywords': 'Proxmox frontend gui',
     'project_urls': {
-        'Project homepage': 'https://www.henrici.name/projects/myprox',
+        'Project homepage': 'https://www.henrici.name/projects/myprox.html',
         'Repository': 'https://www.github.com/towalink/myprox',
         'Documentation': 'https://www.github.com/towalink/myprox',
     },

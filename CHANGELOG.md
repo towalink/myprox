@@ -11,6 +11,8 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Link to project homepage corrected
+- Clean-up staging configuration parameters
 
 ## [0.6.0] - 2024-05-05
 
