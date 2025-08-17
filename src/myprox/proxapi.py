@@ -58,7 +58,9 @@ class ProxAPI():
             raise ValueError('No vmid provided')
         vmid, _, node = id.partition('@')
         if (node is not None) and (not len(node)):
-            node = None    
+            node = None
+        if not vmid.isdecimal():
+            raise ValueError('vmid must be numeric')
         return vmid, node
     
     def get_role(self, role):
@@ -105,8 +107,11 @@ class ProxAPI():
                 else:
                     item['status_uptime'] = item['status'] + ', up for ' + item['uptime_human']
                 result[vm['vmid']] = item
-        if vmid is not None:
-            return result[int(vmid)]
+        if (vmid is not None):
+            if str(vmid).isdecimal():
+                return result.get(int(vmid))
+            else:
+                return None
         return result            
 
     def get_virtual_machine(self, id, full=False):

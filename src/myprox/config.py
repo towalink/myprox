@@ -106,7 +106,7 @@ class Configuration():
 
     @property
     def proxmox_default_auth_domain(self):
-        """Whether to check the ssl certificate of the Proxmox API"""
+        """Default authentication domain for the case that no domain is explicitly provided"""
         return self.config.get('proxmox_default_auth_domain', 'pve')
         
     @property
@@ -157,3 +157,8 @@ class Configuration():
     def dryrun(self):
         """Define whether to disable sending any writing/changing requests to Proxmox API"""
         return self.is_true(self.config.get('dryrun', 0))
+
+    @property
+    def environment(self):
+        """Defines the CherryPy runtime environment"""
+        return self.config.get('environment', 'development')

@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup_kwargs = {
     'name': 'MyProx',
-    'version': '0.6.2',
+    'version': '0.6.1',
     'author': 'Dirk Henrici',
     'author_email': 'pypi.myprox@henrici.name',
     'description': 'simple web frontend for Proxmox VE users',
@@ -29,7 +29,6 @@ setup_kwargs = {
     'classifiers': [
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Operating System :: POSIX :: Linux',
         'Development Status :: 4 - Beta',
         #'Development Status :: 5 - Production/Stable',

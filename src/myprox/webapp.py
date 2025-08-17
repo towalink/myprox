@@ -35,39 +35,42 @@ class WebApp():
         """Manage a machine"""
         machine_data = None
         message = None
-        if id:
-            action_results = {
-              'start': 'start triggered',
-              'reboot': 'reboot triggered',
-              'shutdown': 'shutdown triggered',
-              'reset': 'reset triggered', 
-              'stop': 'stop (switch-off) triggered',
-              'suspend': 'suspension (hibernation) triggered',
-              'resume': 'resume triggered'
-            }
-            if action_selection in action_results.keys():
-                if not self.cfg.dryrun:
-                    cherrypy.session['proxmox'].trigger_vm_action(id, action_selection)
-                message = f'Machine {action_results[action_selection]}.'
-            elif action_selection == 'console':
-                raise cherrypy.HTTPRedirect(f'/console?id={id}')
-            elif action_selection == 'console_vnc':
-                raise cherrypy.HTTPRedirect(f'/console_vnc?id={id}')
-            elif action_selection == 'extend':
-                cherrypy.session['proxmox'].set_tag_expiry_bydays(id, self.cfg.expiry_prolongation_days)
-                message = 'The expiry data of this machine has been set according to the prolongation policy of your organization.'
-            elif action_selection == 'destroy':
-                message = 'The functionality to destroy a machine is not yet implemented. . Contact support to do this.'
-            elif action_selection == 'refresh':
-                pass # nothing to do
-            elif action_selection is None: # no action triggered at all
-                pass # nothing to do
-            else: # unknown action
-                message = 'Error: invalid action specified'
-        else:
-            message = 'Error: no identifier given'
-        if not machine_data and id:
-            machine_data = cherrypy.session['proxmox'].get_virtual_machine_with_tags(id)
+        try:
+            if id:
+                action_results = {
+                'start': 'start triggered',
+                'reboot': 'reboot triggered',
+                'shutdown': 'shutdown triggered',
+                'reset': 'reset triggered', 
+                'stop': 'stop (switch-off) triggered',
+                'suspend': 'suspension (hibernation) triggered',
+                'resume': 'resume triggered'
+                }
+                if action_selection in action_results.keys():
+                    if not self.cfg.dryrun:
+                        cherrypy.session['proxmox'].trigger_vm_action(id, action_selection)
+                    message = f'Machine {action_results[action_selection]}.'
+                elif action_selection == 'console':
+                    raise cherrypy.HTTPRedirect(f'/console?id={id}')
+                elif action_selection == 'console_vnc':
+                    raise cherrypy.HTTPRedirect(f'/console_vnc?id={id}')
+                elif action_selection == 'extend':
+                    cherrypy.session['proxmox'].set_tag_expiry_bydays(id, self.cfg.expiry_prolongation_days)
+                    message = 'The expiry data of this machine has been set according to the prolongation policy of your organization.'
+                elif action_selection == 'destroy':
+                    message = 'The functionality to destroy a machine is not yet implemented. . Contact support to do this.'
+                elif action_selection == 'refresh':
+                    pass # nothing to do
+                elif action_selection is None: # no action triggered at all
+                    pass # nothing to do
+                else: # unknown action
+                    message = 'Error: invalid action specified'
+            else:
+                message = 'Error: no identifier given'        
+            if not machine_data and id:
+                machine_data = cherrypy.session['proxmox'].get_virtual_machine_with_tags(id)
+        except ValueError as e:
+            message = f'\n{str(e)}'
         if machine_data is None:
             machine_data = dict()
         #cherrypy.log(str(machine_data), context='WEBAPP', severity=logging.WARNING, traceback=False)
@@ -171,6 +174,7 @@ class WebApp():
 
 def run_webapp(cfg):
     """Runs the CherryPy web application with the provided configuration data"""
+    #logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     script_path = os.path.dirname(os.path.abspath(__file__))
     app = WebApp(cfg)
     # Use SSL if certificate files exist
@@ -189,7 +193,8 @@ def run_webapp(cfg):
     # Disable autoreload (cannot listen at a port <1024 after dropping root privileges)
     cherrypy.config.update({'engine.autoreload.on': False})
     # Select environment
-    cherrypy.config.update({'environment': 'production'})
+    if cfg.environment != 'development':
+        cherrypy.config.update({'environment': cfg.environment})
     # Configure the web application
     app_conf = {
        '/': {

@@ -3,11 +3,11 @@
 All notable changes to this project are documented in this file.
 
 
-## [Unreleased]
-
-### Added
+## [0.6.1] - 2025-04-01
 
 ### Changed
+
+- Improve error handling for invalid URLs
 
 ### Fixed
 
