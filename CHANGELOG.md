@@ -12,6 +12,7 @@ All notable changes to this project are documented in this file.
 ### Changed
 
 - Set accept-charset for login form to UTF-8
+- Limit scope of session cookie strictly to same site
 
 ## [0.6.1] - 2025-04-01
 
