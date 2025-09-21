@@ -9,6 +9,10 @@ All notable changes to this project are documented in this file.
 
 - Support selecting to which of multiple Proxmox nodes to connect to
 
+### Changed
+
+- Set accept-charset for login form to UTF-8
+
 ## [0.6.1] - 2025-04-01
 
 ### Changed
