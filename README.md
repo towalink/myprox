@@ -10,6 +10,7 @@ A simple web frontend for accessing and managing VMs running on Proxmox VE. It i
 - Manage VM state, e.g. starting and stopping
 - Open SPICE console (virt-viewer)
 - Authentication against Proxmox
+- Support connecting to multiple Proxmox nodes/clusters
 - Web frontend has responsive design
 - Does not require root privileges
 - Built on light-weight CherryPy framework
