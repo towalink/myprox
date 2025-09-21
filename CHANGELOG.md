@@ -8,6 +8,7 @@ All notable changes to this project are documented in this file.
 ### Added
 
 - Support selecting to which of multiple Proxmox nodes to connect to
+- Show site header on login form
 
 ### Changed
 
