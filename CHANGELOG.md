@@ -3,6 +3,12 @@
 All notable changes to this project are documented in this file.
 
 
+## [1.0.0] - 2025-09-21
+
+### Added
+
+- Support selecting to which of multiple Proxmox nodes to connect to
+
 ## [0.6.1] - 2025-04-01
 
 ### Changed

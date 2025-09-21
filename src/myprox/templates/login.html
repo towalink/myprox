@@ -27,6 +27,20 @@
           <input type="hidden" name="from_page" value="{{ from_page }}" />
         </td>
       </tr>
+    {%- if nodes %}
+      <tr>
+        <td>
+          Node:
+        </td>
+        <td>
+          <select class="logininput" name="node">
+          {%- for node, caption in nodes.items() %}
+            <option value="{{ node }}"{% if loop.first %} selected{% endif %}>{{ caption }}</option>
+          {%- endfor %}
+          </select>
+        </td>
+      </tr>
+    {%- endif %}
       <tr>
         <td colspan=2 align=right>
           <input class="button loginmargin" type="submit" value="Login" />

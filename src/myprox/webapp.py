@@ -25,6 +25,7 @@ class WebApp():
     @cherrypy.expose
     def index(self, action=None, id=None, action_selection=None):
         """Show a list of existing machines"""
+        node = cherrypy.session.get('node')
         vms = cherrypy.session['proxmox'].get_virtual_machines()
         #cherrypy.log(str(vms), context='WEBAPP', severity=logging.INFO, traceback=False)
         tmpl = self.jinja_env.get_template('index.html')
@@ -33,6 +34,7 @@ class WebApp():
     @cherrypy.expose
     def manage(self, action=None, id=None, action_selection=None):
         """Manage a machine"""
+        node = cherrypy.session.get('node')
         machine_data = None
         message = None
         try:
@@ -47,7 +49,7 @@ class WebApp():
                 'resume': 'resume triggered'
                 }
                 if action_selection in action_results.keys():
-                    if not self.cfg.dryrun:
+                    if not self.cfg.dryrun(node):
                         cherrypy.session['proxmox'].trigger_vm_action(id, action_selection)
                     message = f'Machine {action_results[action_selection]}.'
                 elif action_selection == 'console':
@@ -55,7 +57,7 @@ class WebApp():
                 elif action_selection == 'console_vnc':
                     raise cherrypy.HTTPRedirect(f'/console_vnc?id={id}')
                 elif action_selection == 'extend':
-                    cherrypy.session['proxmox'].set_tag_expiry_bydays(id, self.cfg.expiry_prolongation_days)
+                    cherrypy.session['proxmox'].set_tag_expiry_bydays(id, self.cfg.expiry_prolongation_days(node))
                     message = 'The expiry data of this machine has been set according to the prolongation policy of your organization.'
                 elif action_selection == 'destroy':
                     message = 'The functionality to destroy a machine is not yet implemented. . Contact support to do this.'
@@ -80,7 +82,8 @@ class WebApp():
     @cherrypy.expose
     def create(self, action=None, id=None):
         """Trigger creation of a VM"""
-        raise cherrypy.HTTPRedirect(self.cfg.machine_creation_url.format(username=cherrypy.session['username']))
+        node = cherrypy.session.get('node')
+        raise cherrypy.HTTPRedirect(self.cfg.machine_creation_url(node).format(username=cherrypy.session['username']))
 
     @cherrypy.expose
     def console(self, id=None):
@@ -103,11 +106,12 @@ class WebApp():
     @cherrypy.expose
     def console_vnc(self, id=None):
         """Open a VNC console for the provided VM using Proxmox' web console"""
+        node = cherrypy.session.get('node')
         token = cherrypy.session['proxmox'].proxmox.get_tokens()[0]
         cherrypy.response.cookie['PVEAuthCookie'] = token        
         cherrypy.response.cookie['PVEAuthCookie']._coded_value = token # automatic encoding adds quotes; since these break Proxmox authentication, override automatic quoting
         cherrypy.response.cookie['PVEAuthCookie']['path'] = '/'
-        domain = self.cfg.cookie_auth_domain
+        domain = self.cfg.cookie_auth_domain(node)
         if domain is not None:
             cherrypy.response.cookie['PVEAuthCookie']['domain'] = domain
         cherrypy.response.cookie['PVEAuthCookie']['max-age'] = 60
@@ -117,7 +121,7 @@ class WebApp():
         cherrypy.response.cookie['PVEAuthCookie']['httponly'] = 'true'
         cherrypy.log(f'Auth cookie set: {cherrypy.response.cookie["PVEAuthCookie"].output()}', context='WEBAPP', severity=logging.DEBUG)
         # Proxmox does e.g. https://192.168.202.16:8006/?console=kvm&novnc=1&vmid=112&vmname=dh-testvm&node=dh-nas6&resize=off&cmd='
-        prox = self.cfg.proxmox_api_withport
+        prox = self.cfg.proxmox_api_withport(node)
         vmid, node = cherrypy.session['proxmox'].decompose_id(id)
         raise cherrypy.HTTPRedirect(f'https://{prox}/?console=kvm&novnc=1&vmid={vmid}&node={node}&resize=off&cmd=')
 
@@ -128,18 +132,21 @@ class WebApp():
 
     def check_username_and_password(self, username, password):
         """Check whether provided username and password are valid when authenticating"""
+        node = cherrypy.request.params.get('node')
+        if node is not None:
+            cherrypy.session['node'] = node
         # Shortcut user
         if username == '.':
-            username = self.cfg.shortcut_user
+            username = self.cfg.shortcut_user(node)
             if not len(password):
-                password = self.cfg.shortcut_password
+                password = self.cfg.shortcut_password(node)
         # Add default domain in case no domain provided
         if '@' not in username:
-            username += '@' + self.cfg.proxmox_default_auth_domain
+            username += '@' + self.cfg.proxmox_default_auth_domain(node)
         # Connect to ProxmoxAPI with provided credentials and store reference in session
         try:
             try:
-                cherrypy.session['proxmox'] = myproxapi.MyProxAPI(self.cfg.proxmox_api, username, password, self.cfg.proxmox_api_verifyssl)
+                cherrypy.session['proxmox'] = myproxapi.MyProxAPI(self.cfg.proxmox_api(node), username, password, self.cfg.proxmox_api_verifyssl(node))
             except proxmoxer.backends.https.AuthenticationError as e:
                 cherrypy.log(f'Wrong credentials for user ["{username}"]', context='WEBAPP', severity=logging.INFO, traceback=False)
                 return 'invalid username/password'
@@ -152,8 +159,9 @@ class WebApp():
 
     def login_screen(self, from_page='..', username='', error_msg='', **kwargs):
         """Shows a login form"""
+        nodes = self.cfg.nodes
         tmpl = self.jinja_env.get_template('login.html')
-        return tmpl.render(from_page=from_page, username=username, error_msg=error_msg).encode('utf-8')
+        return tmpl.render(from_page=from_page, username=username, error_msg=error_msg, nodes=nodes).encode('utf-8')
 
     @cherrypy.expose
     def logout(self):
