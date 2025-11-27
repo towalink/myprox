@@ -10,9 +10,9 @@ from . import proxapi
 
 class MyProxAPI(proxapi.ProxAPI):
 
-    def __init__(self, host, user, password, verify_ssl = True):
+    def __init__(self, host, user, password=None, ticket=None, verify_ssl=True):
         """Instance initialization"""
-        super().__init__(host, user, password, verify_ssl = verify_ssl)
+        super().__init__(host, user, password=password, ticket=ticket, verify_ssl=verify_ssl)
         self.clear_tag_cache()
 
     def check_role_VMUserMyProx(self):

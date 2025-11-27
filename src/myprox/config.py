@@ -3,6 +3,7 @@
 import configparser
 import logging
 import os
+import socket
 import textwrap
 
 
@@ -13,7 +14,11 @@ config_filename = '/etc/myprox/myprox.conf'
 
 class Configuration():
     """Class for reading/writing the configuration file"""
-    _config = None
+
+    def __init__(self):
+        """Object initialization"""
+        self._config = None
+        self.cache_ssl = None
 
     def exists(self):
         """Checks whether the config file exists"""
@@ -89,6 +94,33 @@ class Configuration():
         return int(self.get('socket_port', 8080))
 
     @property
+    def use_ssl(self):
+        """Check whether we use SSL/TLS"""
+        if self.cache_ssl is None:
+            # We need to cache this because we might no longer have access permissions after dropping root privileges
+            self.cache_ssl = os.path.exists(self.sslcertfile) and os.path.exists(self.sslkeyfile)
+        return self.cache_ssl
+
+    @property
+    def url(self):
+        """Get url of our webserver"""
+        scheme = f'http{'s' if self.use_ssl else ''}'
+        fqdn = socket.getfqdn()
+        port = self.socket_port
+        if (scheme == 'http') and (port == 80):
+            port = ''
+        if (scheme == 'https') and (port == 443):
+            port = ''
+        if port:
+             port = ':' + str(port)
+        return self.get('url', f'{scheme}://{fqdn}{port}')
+
+    @property
+    def oidc_redirect_url(self):
+        """Return the callback URL for OIDC authentication"""
+        return self.get('oidc_redirect_url', f'{self.url}/redirect_uri')
+
+    @property
     def webserver_user(self):
         """In case MyProx is started as root, drop privileges to the given user for increased security"""
         return self.get('webserver_user', 'myprox')
@@ -106,6 +138,11 @@ class Configuration():
     def proxmox_api(self, node):
         """The hostname/IP address of the Proxmox API"""
         return self.get('proxmox_api', 'localhost', node)
+
+    def proxmox_api_endpoint(self, node):
+        """Get Proxmox API base URL"""
+        api_endpoint = f'https://{self.proxmox_api(node)}:8006/api2/json'
+        return api_endpoint
 
     def proxmox_api_withport(self, node):
         """The hostname/IP address of the Proxmox API including port number"""

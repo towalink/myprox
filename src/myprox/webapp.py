@@ -7,6 +7,7 @@ import jinja2
 import logging
 import os
 import random
+import requests
 import string
 from urllib.parse import urlencode
 
@@ -130,6 +131,74 @@ class WebApp():
         """Trigger start of the provided VM"""
         raise cherrypy.HTTPRedirect('./manage?action_selection=start&' + urlencode([('id', id)]))
 
+    def get_myprox_instance(self, node, username, password=None, ticket=None):
+        """Connect to ProxmoxAPI with provided credentials and store reference in session"""
+        try:
+            try:
+                cherrypy.session['proxmox'] = myproxapi.MyProxAPI(self.cfg.proxmox_api(node), username, password, ticket, self.cfg.proxmox_api_verifyssl(node))
+            except proxmoxer.backends.https.AuthenticationError as e:
+                cherrypy.log(f'Wrong credentials for user ["{username}"]', context='WEBAPP', severity=logging.INFO, traceback=False)
+                return 'invalid username/password'
+        except Exception as e:
+            cherrypy.log(f'Error accessing ProxmoxAPI by user ["{username}"]: {str(e)}', context='WEBAPP', severity=logging.WARNING, traceback=False)
+            #raise # for debugging
+            return 'Error accessing Proxmox - please try again later'
+        return None
+
+    @cherrypy.expose
+    def redirect_uri(self, code=None, state=None):
+        """Handle the callback from the OIDC provider"""
+        # Query parameter validation
+        if (code is None) or (state is None):
+            raise cherrypy.HTTPError(400, "Missing 'code' attribute or 'state' attribute in the response")
+        # Login request to Proxmox API
+        node = None # temporary solution only ***
+        api_endpoint = self.cfg.proxmox_api_endpoint(node) + '/access/openid/login'
+        data = {
+            'code': code,
+            'state': state,
+            'redirect-url': self.cfg.oidc_redirect_url
+        }
+        cherrypy.log(f'HTTP POST request to API at [{api_endpoint}]', context='WEBAPP', severity=logging.DEBUG, traceback=False)
+        response = requests.post(api_endpoint, data=data)
+        if response.status_code == 200:
+            result = response.json()
+            username = result.get('data', {}).get('username')
+            ticket = result.get('data', {}).get('ticket')
+            if ticket and username:
+                cherrypy.session['username'] = username
+                # Connect to ProxmoxAPI with provided credentials and store reference in session
+                error_text = self.get_myprox_instance(node, username, ticket=ticket)
+                if error_text is not None:
+                    raise cherrypy.HTTPError(500, error_text)
+                raise cherrypy.HTTPRedirect('/')
+            else:
+                raise cherrypy.HTTPError(500, 'Authentication failed: Missing ticket or username')
+        else:
+            raise cherrypy.HTTPError(500, 'Failed to exchange auth code for Proxmox auth token')
+
+    def trigger_oidc_auth(self, node):
+        """Gets an auth URL from Proxmox and redirects to OIDC provider"""
+        api_endpoint = self.cfg.proxmox_api_endpoint(node) + '/access/openid/auth-url'
+        data = {
+            'realm': 'SSO',
+            'redirect-url': self.cfg.oidc_redirect_url
+        }
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        cherrypy.log(f'HTTP POST request to API at [{api_endpoint}] with redirect url [{self.cfg.oidc_redirect_url}]', context='WEBAPP', severity=logging.DEBUG, traceback=False)
+        response = requests.post(api_endpoint, data=data, headers=headers)
+        if response.status_code == 200:
+            result = response.json()
+            redirect_url = result.get('data')
+            if redirect_url:
+                raise cherrypy.HTTPRedirect(redirect_url)
+            else:
+                raise cherrypy.HTTPError(500, 'Failed to initiate OIDC authentication: invalid Proxmox API response')
+        else:
+            raise cherrypy.HTTPError(500, f'Failed to initiate OIDC authentication, status code [{response.status_code}]')
+
     def check_username_and_password(self, username, password):
         """Check whether provided username and password are valid when authenticating"""
         node = cherrypy.request.params.get('node')
@@ -140,20 +209,16 @@ class WebApp():
             username = self.cfg.shortcut_user(node)
             if not len(password):
                 password = self.cfg.shortcut_password(node)
+        # OIDC login
+        if username == '':
+            self.trigger_oidc_auth(node)
         # Add default domain in case no domain provided
         if '@' not in username:
             username += '@' + self.cfg.proxmox_default_auth_domain(node)
         # Connect to ProxmoxAPI with provided credentials and store reference in session
-        try:
-            try:
-                cherrypy.session['proxmox'] = myproxapi.MyProxAPI(self.cfg.proxmox_api(node), username, password, self.cfg.proxmox_api_verifyssl(node))
-            except proxmoxer.backends.https.AuthenticationError as e:
-                cherrypy.log(f'Wrong credentials for user ["{username}"]', context='WEBAPP', severity=logging.INFO, traceback=False)
-                return 'invalid username/password'
-        except Exception as e:
-            cherrypy.log(f'Error accessing ProxmoxAPI by user ["{username}"]: {str(e)}', context='WEBAPP', severity=logging.WARNING, traceback=False)
-            #raise # for debugging
-            return 'login not possible - please try again later'
+        error_text = self.get_myprox_instance(node, username, password)
+        if error_text is not None:
+            return error_text
         cherrypy.log(f'User ["{username}"] logged in', context='WEBAPP', severity=logging.INFO, traceback=False)
         return # credentials ok; all set
 
@@ -185,10 +250,8 @@ def run_webapp(cfg):
     #logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     script_path = os.path.dirname(os.path.abspath(__file__))
     app = WebApp(cfg)
-    # Use SSL if certificate files exist
-    ssl = os.path.exists(cfg.sslcertfile) and os.path.exists(cfg.sslkeyfile)
-    if ssl:
-        # Use ssl/tls if certificate files are present
+    # Use SSL/TLS if certificate files exist
+    if cfg.use_ssl:
         cherrypy.server.ssl_module = 'builtin'
         cherrypy.server.ssl_certificate = cfg.sslcertfile
         cherrypy.server.ssl_private_key = cfg.sslkeyfile
@@ -207,21 +270,23 @@ def run_webapp(cfg):
     app_conf = {
        '/': {
             'tools.sessions.on': True,
-            'tools.sessions.secure': ssl,
+            'tools.sessions.secure': cfg.use_ssl,
             'tools.sessions.httponly': True,
             'tools.sessions.samesite': 'Strict',
             'tools.staticdir.root': os.path.join(script_path, 'webroot'),
             'tools.session_auth.on': True,
             'tools.session_auth.login_screen': app.login_screen,
             'tools.session_auth.check_username_and_password': app.check_username_and_password,
-            },
+        },
+        '/redirect_uri': {
+            'tools.session_auth.on': False
+        },
         '/static': {
             'tools.session_auth.on': False,
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'static'
         },
-        '/favicon.ico':
-        {
+        '/favicon.ico': {
             'tools.session_auth.on': False,
             'tools.staticfile.on': True,
             'tools.staticfile.filename': os.path.join(script_path, 'webroot', 'static', 'favicon.ico')
