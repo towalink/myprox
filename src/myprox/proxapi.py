@@ -2,14 +2,120 @@
 
 # ProxmoxAPI documentation: see https://pve.proxmox.com/pve-docs/api-viewer/
 
+import importlib
 import proxmoxer
+from proxmoxer import SERVICES
+
+
+def ProxmoxHTTPAuth_init(self, username, password, otp=None, base_url="", ticket=None, **kwargs):
+    """Patched ProxmoxHTTPAuth.__init__, see original at https://github.com/proxmoxer/proxmoxer/blob/develop/proxmoxer/backends/https.py"""
+    # Replace super().__init__(...)
+    backend_https = importlib.import_module(f'.backends.https', 'proxmoxer')
+    backend_https.ProxmoxHTTPAuthBase.__init__(self, **kwargs)
+
+    self.base_url = base_url
+    self.username = username
+    # Use ticket if available
+    self.pve_auth_ticket = ticket if (ticket is not None) else ""
+
+    self._get_new_tokens(password=password, otp=otp)
+
+def Backend_init(
+    self,
+    host,
+    user=None,
+    password=None,
+    ticket=None,
+    otp=None,
+    port=None,
+    verify_ssl=True,
+    mode="json",
+    timeout=5,
+    token_name=None,
+    token_value=None,
+    path_prefix=None,
+    service="PVE",
+    cert=None,
+):
+    """Patched Backends.__init__, see original at https://github.com/proxmoxer/proxmoxer/blob/develop/proxmoxer/backends/https.py"""
+    # Notes:
+    # The only changes are:
+    # - adding and passing on "ticket" keyword parameter
+    # - allowing password==None if ticket is provided
+
+    # Make relevant variables available
+    backend_https = importlib.import_module(f'.backends.https', 'proxmoxer')
+    ProxmoxHTTPAuth = backend_https.ProxmoxHTTPAuth
+    ProxmoxHTTPApiTokenAuth = backend_https.ProxmoxHTTPApiTokenAuth
+    config_failure = backend_https.config_failure
+
+    self.cert = cert
+    host_port = ""
+    if len(host.split(":")) > 2:  # IPv6
+        if host.startswith("["):
+            if "]:" in host:
+                host, host_port = host.rsplit(":", 1)
+        else:
+            host = f"[{host}]"
+    elif ":" in host:
+        host, host_port = host.split(":")
+    port = host_port if host_port.isdigit() else port
+
+    # if a port is not specified, use the default port for this service
+    if not port:
+        port = SERVICES[service]["default_port"]
+
+    self.mode = mode
+    if path_prefix is not None:
+        self.base_url = f"https://{host}:{port}/{path_prefix}/api2/{mode}"
+    else:
+        self.base_url = f"https://{host}:{port}/api2/{mode}"
+
+    if token_name is not None:
+        if "token" not in SERVICES[service]["supported_https_auths"]:
+            config_failure("{} does not support API Token authentication", service)
+
+        self.auth = ProxmoxHTTPApiTokenAuth(
+            user,
+            token_name,
+            token_value,
+            verify_ssl=verify_ssl,
+            timeout=timeout,
+            service=service,
+            cert=self.cert,
+        )
+    # The following line got changed
+    elif (password is not None) or (ticket is not None):
+        if "password" not in SERVICES[service]["supported_https_auths"]:
+            config_failure("{} does not support password authentication", service)
+
+        self.auth = ProxmoxHTTPAuth(
+            user,
+            password,
+            otp,
+            base_url=self.base_url,
+            # The following line got changed
+            ticket=ticket,
+            verify_ssl=verify_ssl,
+            timeout=timeout,
+            service=service,
+            cert=self.cert,
+        )
+    else:
+        config_failure("No valid authentication credentials were supplied")
+
 
 
 class ProxAPI():
 
-    def __init__(self, host, user, password, verify_ssl = True):
+    def __init__(self, host, user, password=None, ticket=None, verify_ssl=True):
         """Object initialization: set API parameters"""
-        self.proxmox = proxmoxer.ProxmoxAPI(host, user=user, password=password, verify_ssl=verify_ssl)
+        # Monkey-patch "proxmoxer" library to support tickets instead of passwords
+        backend = importlib.import_module(f'.backends.https', 'proxmoxer')
+        backend.ProxmoxHTTPAuth.__init__ = ProxmoxHTTPAuth_init
+        backend.Backend.__init__ = Backend_init
+        # Create proxmoxer instance
+        self.proxmox = proxmoxer.ProxmoxAPI(host, user=user, password=password, ticket=ticket, verify_ssl=verify_ssl)
 
     def int2human(self, value, decimal_places = -1):
         """Convert integer value to human readable one with 'K'/'M'/'G'/'T'"""
