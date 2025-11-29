@@ -173,6 +173,12 @@ class Configuration():
                 domain = None
         return domain
 
+    @property
+    def login_caption(self):
+        """Greeting text (in HTML format) to show on the login form"""
+        default = '<h3 style="text-align: center; margin-bottom: 2em;">Welcome!</h3>'
+        return self.get('login_caption', default)
+
     def shortcut_user(self, node):
         """The user to be used in case '.' is provided as username"""
         return self.get('shortcut_user', '', node)
