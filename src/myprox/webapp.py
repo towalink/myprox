@@ -226,7 +226,8 @@ class WebApp():
         """Shows a login form"""
         nodes = self.cfg.nodes
         tmpl = self.jinja_env.get_template('login.html')
-        return tmpl.render(from_page=from_page, username=username, error_msg=error_msg, nodes=nodes).encode('utf-8')
+        login_caption = self.cfg.login_caption
+        return tmpl.render(from_page=from_page, username=username, error_msg=error_msg, nodes=nodes, login_caption=login_caption).encode('utf-8')
 
     @cherrypy.expose
     def logout(self):

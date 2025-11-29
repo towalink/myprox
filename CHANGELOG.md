@@ -3,6 +3,13 @@
 All notable changes to this project are documented in this file.
 
 
+## [1.1.0] - 2025-11-29
+
+### Added
+
+- Add configurable greeting text for login form
+- Support login against OIDC-enabled Proxmox cluster
+
 ## [1.0.0] - 2025-09-21
 
 ### Added
