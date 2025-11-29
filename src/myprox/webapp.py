@@ -4,12 +4,13 @@
 
 import cherrypy
 import jinja2
+import json
 import logging
 import os
 import random
 import requests
 import string
-from urllib.parse import urlencode
+import urllib.parse
 
 import proxmoxer
 from . import myproxapi
@@ -129,7 +130,7 @@ class WebApp():
     @cherrypy.expose
     def start(self, id=None):
         """Trigger start of the provided VM"""
-        raise cherrypy.HTTPRedirect('./manage?action_selection=start&' + urlencode([('id', id)]))
+        raise cherrypy.HTTPRedirect('./manage?action_selection=start&' + urllib.parse.urlencode([('id', id)]))
 
     def get_myprox_instance(self, node, username, password=None, ticket=None):
         """Connect to ProxmoxAPI with provided credentials and store reference in session"""
@@ -145,21 +146,49 @@ class WebApp():
             return 'Error accessing Proxmox - please try again later'
         return None
 
+    def add_node_in_state_parameter(self, url, node):
+        """Update the state query parameter of an URL to include node information in its JSON value"""
+        # Parse the URL
+        parsed_url = urllib.parse.urlparse(url)
+        # Extract query parameters
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+        # Decode the state parameter from URL encoding
+        if 'state' not in query_params:
+            raise ValueError("The 'state' parameter is not in the URL.")
+        state_json = query_params['state'][0]
+        state_dict = json.loads(state_json)
+        # Add a node attribute to the state dictionary
+        state_dict['node'] = node
+        # Re-encode the modified state back to JSON
+        updated_state_json = json.dumps(state_dict, separators=(',', ':'))
+        # Update the query parameters with the new state
+        query_params['state'] = updated_state_json
+        # Reconstruct the URL
+        updated_query = urllib.parse.urlencode(query_params, doseq=True)
+        updated_url = urllib.parse.urlunparse(
+            parsed_url._replace(query=updated_query)
+        )
+        return updated_url
+
     @cherrypy.expose
     def redirect_uri(self, code=None, state=None):
         """Handle the callback from the OIDC provider"""
         # Query parameter validation
         if (code is None) or (state is None):
             raise cherrypy.HTTPError(400, "Missing 'code' attribute or 'state' attribute in the response")
+        # Extract node info from state
+        state_dict = json.loads(state)
+        node = state_dict.get('node')
+        # Add a node attribute to the state dictionary
+        state_dict['node']
         # Login request to Proxmox API
-        node = None # temporary solution only ***
         api_endpoint = self.cfg.proxmox_api_endpoint(node) + '/access/openid/login'
         data = {
             'code': code,
             'state': state,
             'redirect-url': self.cfg.oidc_redirect_url
         }
-        cherrypy.log(f'HTTP POST request to API at [{api_endpoint}]', context='WEBAPP', severity=logging.DEBUG, traceback=False)
+        cherrypy.log(f'HTTP POST request to API at [{api_endpoint}] with data [{data}]', context='WEBAPP', severity=logging.DEBUG, traceback=False)
         response = requests.post(api_endpoint, data=data)
         if response.status_code == 200:
             result = response.json()
@@ -192,6 +221,7 @@ class WebApp():
         if response.status_code == 200:
             result = response.json()
             redirect_url = result.get('data')
+            redirect_url = self.add_node_in_state_parameter(redirect_url, node)
             if redirect_url:
                 raise cherrypy.HTTPRedirect(redirect_url)
             else:
