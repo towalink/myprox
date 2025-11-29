@@ -115,9 +115,13 @@ class Configuration():
              port = ':' + str(port)
         return self.get('url', f'{scheme}://{fqdn}{port}')
 
+    def proxmox_oidc_auth_domain(self, node):
+        """The Proxmox domain used with OIDC authentication"""
+        return self.get('proxmox_oidc_auth_domain', None, node)
+
     @property
     def oidc_redirect_url(self):
-        """Return the callback URL for OIDC authentication"""
+        """The MyProx callback URL for OIDC authentication"""
         return self.get('oidc_redirect_url', f'{self.url}/redirect_uri')
 
     @property

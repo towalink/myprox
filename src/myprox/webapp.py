@@ -181,7 +181,7 @@ class WebApp():
         """Gets an auth URL from Proxmox and redirects to OIDC provider"""
         api_endpoint = self.cfg.proxmox_api_endpoint(node) + '/access/openid/auth-url'
         data = {
-            'realm': 'SSO',
+            'realm': self.cfg.proxmox_oidc_auth_domain(node),
             'redirect-url': self.cfg.oidc_redirect_url
         }
         headers = {
@@ -210,7 +210,7 @@ class WebApp():
             if not len(password):
                 password = self.cfg.shortcut_password(node)
         # OIDC login
-        if username == '':
+        if (username == '') and self.cfg.proxmox_oidc_auth_domain(node):
             self.trigger_oidc_auth(node)
         # Add default domain in case no domain provided
         if '@' not in username:
