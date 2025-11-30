@@ -9,7 +9,7 @@ A simple web frontend for accessing and managing VMs running on Proxmox VE. It i
 - List all VMs a user has permissions on
 - Manage VM state, e.g. starting and stopping
 - Open SPICE console (virt-viewer)
-- Authentication against Proxmox
+- Authentication against Proxmox (username/password, OIDC)
 - Support connecting to multiple Proxmox nodes/clusters
 - Web frontend has responsive design
 - Does not require root privileges
@@ -46,6 +46,16 @@ Configuration can be done in the file `/etc/myprox/myprox.conf`. A commented exa
 <img src="https://raw.githubusercontent.com/towalink/myprox/main/screenshots/list-machines.png" width="450" alt="screenshot: show list of VMs">
 
 See additional screenshots in the "screenshots" folder.
+
+---
+
+## Special features
+
+### Support for OIDC authentication
+
+If your Proxmox installation is set up to authenticate against an OIDC provider like Keycloak, you can still use MyProx. MyProx still authenticates against your Proxmox cluster but no longer based on username and password.
+
+You need to set the URL of your MyProx installation as a valid redirect URL in the Proxmox client configuration of your identity provider, e.g. `https://myprox.mydomain.de/redirect_uri`. Then set the OIDC related options, at least the Proxmox realm to be used. Now you can leave username and password fields empty in the login form to authenticate against your OIDC provider.
 
 ---
 
