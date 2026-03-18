@@ -7,7 +7,7 @@ import proxmoxer
 from proxmoxer import SERVICES
 
 
-def ProxmoxHTTPAuth_init(self, username, password, otp=None, base_url="", ticket=None, **kwargs):
+def ProxmoxHTTPAuth_init(self, username, password, otp=None, base_url="", otptype="totp", ticket=None, **kwargs):
     """Patched ProxmoxHTTPAuth.__init__, see original at https://github.com/proxmoxer/proxmoxer/blob/develop/proxmoxer/backends/https.py"""
     # Replace super().__init__(...)
     backend_https = importlib.import_module(f'.backends.https', 'proxmoxer')
@@ -36,8 +36,9 @@ def Backend_init(
     path_prefix=None,
     service="PVE",
     cert=None,
+    proxies=None,
 ):
-    """Patched Backends.__init__, see original at https://github.com/proxmoxer/proxmoxer/blob/develop/proxmoxer/backends/https.py"""
+    """Patched Backends.__init__, see original file at https://github.com/proxmoxer/proxmoxer/blob/develop/proxmoxer/backends/https.py"""
     # Notes:
     # The only changes are:
     # - adding and passing on "ticket" keyword parameter
@@ -49,6 +50,7 @@ def Backend_init(
     ProxmoxHTTPApiTokenAuth = backend_https.ProxmoxHTTPApiTokenAuth
     config_failure = backend_https.config_failure
 
+    self.proxies = proxies
     self.cert = cert
     host_port = ""
     if len(host.split(":")) > 2:  # IPv6
@@ -83,6 +85,7 @@ def Backend_init(
             timeout=timeout,
             service=service,
             cert=self.cert,
+            proxies=proxies,
         )
     # The following line got changed
     elif (password is not None) or (ticket is not None):
@@ -100,6 +103,7 @@ def Backend_init(
             timeout=timeout,
             service=service,
             cert=self.cert,
+            proxies=proxies,
         )
     else:
         config_failure("No valid authentication credentials were supplied")
