@@ -7,7 +7,7 @@ with open('README.md', 'r') as f:
 
 setup_kwargs = {
     'name': 'MyProx',
-    'version': '1.2.0',
+    'version': '1.2.1',
     'author': 'Dirk Henrici',
     'author_email': 'pypi.myprox@henrici.name',
     'description': 'simple web frontend for Proxmox VE users',
@@ -20,7 +20,7 @@ setup_kwargs = {
     'install_requires': ['cherrypy',
                          'requests',
                          'jinja2',
-                         'proxmoxer',
+                         'proxmoxer>=2.3,<2.4',
                         ],
     'entry_points': '''
         [console_scripts]
