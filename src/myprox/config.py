@@ -168,7 +168,7 @@ class Configuration():
         """The joint domain of MyProx and Proxmox to be set in an authentication cookie (used for authentication Proxmox' VNC client)"""
         domain = self.get('cookie_auth_domain', 'auto', node)
         if domain == 'auto':
-            domain = self.proxmox_api # e.g. "myprox.prox.mydomain.com" or "192.168.1.0"
+            domain = self.proxmox_api(node) # e.g. "myprox.prox.mydomain.com" or "192.168.1.0"
             parts = domain.rsplit('.', 2) # e.g. ['myprox.prox', 'mydomain', 'com'] or ['192.168', '1', '0']
             if not parts[-1].isnumeric(): # no IP address?
                 domain = '.'.join(parts[-2:]) # e.g. "mydomain.com"
