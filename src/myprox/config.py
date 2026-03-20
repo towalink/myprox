@@ -104,7 +104,7 @@ class Configuration():
     @property
     def url(self):
         """Get url of our webserver"""
-        scheme = f'http{'s' if self.use_ssl else ''}'
+        scheme = f"http{'s' if self.use_ssl else ''}"
         fqdn = socket.getfqdn()
         port = self.socket_port
         if (scheme == 'http') and (port == 80):
