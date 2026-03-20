@@ -3,6 +3,12 @@
 All notable changes to this project are documented in this file.
 
 
+## [1.2.3] - 2026-03-20
+
+### Fixed
+
+- Fix default for "oidc_redirect_url" config value for OIDC feature
+
 ## [1.2.2] - 2026-03-19
 
 ### Fixed
